@@ -1,4 +1,4 @@
-name: stepik-flask-tutors
+name: stepik-flask-teachers
 channels:
   - conda-forge
   - defaults
@@ -7,7 +7,9 @@ dependencies:
   - flask=1.1
   - pip
   - pip:
-      - boto3
       - flask-bootstrap4
+      - flask-migrate
+      - flask-sqlalchemy
       - flask-wtf
+      - psycopg2-binary
       - gunicorn
