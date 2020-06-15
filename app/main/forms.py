@@ -7,8 +7,6 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired, Regexp
 
-from .storage import Storage
-
 
 PHONE_NUMBER_REGEXP = r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$'
 
@@ -48,9 +46,3 @@ class RequestForm(FlaskForm):
                                                   message="Номер телефона должен соответствовать шаблону")])
 
     submit = SubmitField("Найдите мне преподавателя")
-
-    def __init__(self, storage: Storage, *args, **kwargs):
-        super(RequestForm, self).__init__(*args, **kwargs)
-
-        self.client_goal.choices = [(g['code'], g['title']) for g in storage.goals]
-        self.client_opportunity.choices = storage.opportunities

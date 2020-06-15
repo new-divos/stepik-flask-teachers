@@ -204,3 +204,5 @@ fabric.properties
 # Project
 data.json
 .env.*
+*.db
+*.sqlite
