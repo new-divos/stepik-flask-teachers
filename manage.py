@@ -94,7 +94,11 @@ def append_data():
 
 @data_cli.command('remove')
 def remove_data():
-    print("Remove data")
+    for teacher_obj in db.session.query(Teacher).all():
+        teacher_obj.goals.clear()
+        db.session.delete(teacher_obj)
+
+    db.session.commit()
 
 
 if __name__ == '__main__':
