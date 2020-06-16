@@ -1,6 +1,3 @@
-from collections import OrderedDict
-from random import sample
-
 from flask import (
     abort,
     current_app,
@@ -10,30 +7,32 @@ from flask import (
     send_from_directory,
     url_for,
 )
+from sqlalchemy.sql.expression import func
 
 from . import main
 from .forms import BookingForm, RequestForm
+from .. import db
+from ..models import (
+    Goal,
+    Teacher,
+)
 
 
 @main.route('/')
 def index():
-    # storage = Storage()
-    # teachers = sample(storage.teachers, k=6)
-    # teachers.sort(key=lambda item: item['rating'], reverse=True)
-    #
-    # return render_template('index.html', goals=storage.goals, teachers=teachers)
-    pass
+    goals = db.session.query(Goal).order_by(Goal.title)
+    teachers = db.session.query(Teacher).order_by(func.random()).limit(6)
+
+    return render_template('index.html', goals=goals, teachers=teachers)
 
 
 @main.route('/goals/<code>/')
 def render_goal(code: str):
-    # storage = Storage()
-    # goal = next((g['title'] for g in storage.goals if g['code'] == code), '').lower()
-    # teachers = [t for t in storage.teachers if code in t['goals']]
-    # teachers.sort(key=lambda item: item['rating'], reverse=True)
-    #
-    # return render_template('goal.html', goal=goal, teachers=teachers)
-    pass
+    goal = db.session.query(Goal).filter(Goal.code == code).first()
+    if goal is None:
+        abort(404)
+
+    return render_template('goal.html', goal=goal, teachers=goal.teachers)
 
 
 @main.route('/profiles/<int:id>/')

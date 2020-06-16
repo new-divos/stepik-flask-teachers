@@ -3,7 +3,7 @@
 
 {% block main %}
     <h1 class="h1 text-center w-50 mx-auto mt-1 py-5 mb-4"><strong>Преподаватели
-        <br> {{ goal }}</strong></h1>
+        <br> {{ goal.title|lower }}</strong></h1>
     {{ macros.render_teachers(teachers) }}
 
     {{ macros.render_request() }}
