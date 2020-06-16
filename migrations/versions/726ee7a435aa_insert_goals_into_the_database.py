@@ -1,12 +1,12 @@
 """Insert goals into the database
 
-Revision ID: b81f8679446f
-Revises: b48ce44980a5
-Create Date: 2020-06-15 17:32:14.921740
+Revision ID: 726ee7a435aa
+Revises: c958166dc327
+Create Date: 2020-06-16 21:00:06.718097
 
 """
-import sqlalchemy as sa
 from alembic import op
+import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -14,11 +14,10 @@ from data import goals
 
 
 # revision identifiers, used by Alembic.
-revision = 'b81f8679446f'
-down_revision = 'b48ce44980a5'
+revision = '726ee7a435aa'
+down_revision = 'c958166dc327'
 branch_labels = None
 depends_on = None
-
 
 Base = declarative_base()
 

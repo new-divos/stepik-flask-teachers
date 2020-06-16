@@ -1,8 +1,8 @@
 """Insert time table rows into the database
 
-Revision ID: c39afcf8cf42
-Revises: 01b5d7118e11
-Create Date: 2020-06-16 19:57:57.997757
+Revision ID: 96eb62933fb7
+Revises: 726ee7a435aa
+Create Date: 2020-06-16 21:02:09.309794
 
 """
 from datetime import time
@@ -14,8 +14,8 @@ from sqlalchemy.ext.declarative import declarative_base
 
 
 # revision identifiers, used by Alembic.
-revision = 'c39afcf8cf42'
-down_revision = '01b5d7118e11'
+revision = '96eb62933fb7'
+down_revision = '726ee7a435aa'
 branch_labels = None
 depends_on = None
 

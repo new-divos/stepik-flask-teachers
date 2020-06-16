@@ -20,9 +20,17 @@ class Teacher(db.Model):
     id = db.Column('id', db.Integer, primary_key=True)
     name = db.Column('name', db.String(150), nullable=False)
     about = db.Column('about', db.Text, nullable=True)
-    rating = db.Column('rating', db.Float, nullable=False)
+    rating = db.Column(
+        'rating',
+        db.Float,
+        db.CheckConstraint('rating BETWEEN 0.0 AND 5.0')
+    )
     picture = db.Column('picture', db.String, nullable=True)
-    price = db.Column('price', db.Float, nullable=False)
+    price = db.Column(
+        'price',
+        db.Float,
+        db.CheckConstraint('price >= 0.0')
+    )
 
     goals = db.relationship(
         'Goal',
@@ -36,12 +44,6 @@ class Teacher(db.Model):
         cascade='all,delete',
         lazy='dynamic'
     )
-
-    db.CheckConstraint(
-        'rating BETWEEN 0.0 AND 5.0',
-        name='rating_in_range'
-    )
-    db.CheckConstraint('price > 0', name='price_gt_0')
 
 
 class Goal(db.Model):
@@ -113,7 +115,12 @@ class TimeTableCell(db.Model):
         db.Integer,
         db.ForeignKey('time_table_columns.id')
     )
-    is_free = db.Column('is_free', db.Boolean, nullable=False, default=True)
+    is_free = db.Column(
+        'is_free',
+        db.Boolean,
+        nullable=False,
+        default=True
+    )
     name = db.Column('name', db.String(70))
     phone = db.Column('phone', db.String(20))
 
