@@ -11,5 +11,6 @@ dependencies:
       - flask-migrate
       - flask-sqlalchemy
       - flask-wtf
+      - mimesis
       - psycopg2-binary
       - gunicorn

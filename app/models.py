@@ -35,8 +35,7 @@ class Teacher(db.Model):
     goals = db.relationship(
         'Goal',
         secondary=teachers_goals_association,
-        back_populates='teachers',
-        cascade='all,delete'
+        back_populates='teachers'
     )
     time_table = db.relationship(
         'TimeTableColumn',
@@ -56,8 +55,7 @@ class Goal(db.Model):
     teachers = db.relationship(
         'Teacher',
         secondary=teachers_goals_association,
-        back_populates='goals',
-        cascade='all,delete'
+        back_populates='goals'
     )
 
 
