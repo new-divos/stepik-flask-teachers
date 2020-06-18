@@ -9,19 +9,31 @@
 
             <section class="teacher=info">
               <h1 class="h2">{{ teacher.name }}</h1>
-              <p>{% for goal in goals %}<span class="badge badge-secondary mr-2">{{ goal }}</span>{% endfor %}
-                  Рейтинг: {{ teacher.rating }} Ставка: {{ teacher.price }} / час</p>
+              <p>
+                  {% for goal in teacher.goals %}
+                    <a href="{{ url_for('main.render_goal', code=goal.code) }}"
+                       class="badge badge-secondary mr-2">
+                        {{ goal.title }}</a>
+                  {% endfor %}
+                  Рейтинг: {{ teacher.rating }}
+                  <br/>Ставка: {{ teacher.price|rubles|safe }} / час</p>
               <p>{{ teacher.about }}</p>
             </section>
 
             <section class="available">
               <h4 class="mb-4 mt-5">Записаться на пробный урок</h4>
 
-                {% for (code, name), free in time_table.items() %}
-                    <h6 class="mt-4">{{ name }}</h6>
-                    {% for time, hour in free.items() %}
-                        <a href="{{ url_for('main.render_booking', id=teacher.id, code=code, hour=hour) }}"
-                           class="btn btn-outline-success mr-2">{{ time }} свободно</a>
+                {% for (weekday, time_table_date), time_list in time_table.items() %}
+                    <h6 class="mt-4">{{ weekdays[weekday].title }}
+                        ({{ time_table_date|dt }}) </h6>
+                    {% for time, slug in time_list %}
+                        <a href="{{ url_for(
+                            'main.render_booking',
+                            id=teacher.id,
+                            code=weekdays[weekday].code,
+                            slug=slug
+                            ) }}"
+                           class="btn btn-outline-success mr-2">{{ time|tm }} свободно</a>
                     {% else %}
                         <p>Нет свободных уроков</p>
                     {% endfor %}

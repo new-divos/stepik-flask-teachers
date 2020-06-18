@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from datetime import date, timedelta
-
 import logging
 import os
 
@@ -50,11 +48,9 @@ app.cli.add_command(data_cli)
 
 @data_cli.command('add')
 def append_data():
-    from data import teachers, weekdays
+    from data import get_current_week, teachers, weekdays
 
-    today = date.today()
-    monday = today - timedelta(days=today.weekday())
-    week = [monday + timedelta(days=i) for i in range(7)]
+    week = get_current_week()
 
     goals = dict()
     for goal in db.session.query(Goal).all():
@@ -114,7 +110,7 @@ def append_data():
                 )
                 db.session.add(column_obj)
 
-                time_table_day = time_table.get(weekdays[i].slug, dict())
+                time_table_day = time_table.get(weekdays[i].code, dict())
                 if time_table_day:
                     for time_key, is_free in time_table_day.items():
                         row_id = time_points.get(time_key)

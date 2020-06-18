@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from flask import (
     abort,
     current_app,
@@ -15,7 +17,11 @@ from .. import db
 from ..models import (
     Goal,
     Teacher,
+    TimeTableCell,
+    TimeTableColumn,
+    TimeTableRow,
 )
+from data import get_current_week, weekdays
 
 
 @main.route('/')
@@ -37,95 +43,160 @@ def render_goal(code: str):
 
 @main.route('/profiles/<int:id>/')
 def render_profile(id: int):
-    # storage = Storage()
-    # teacher = next((t for t in storage.teachers if t['id'] == id), None)
-    # if teacher is None:
-    #     abort(404)
-    #
-    # goals = [g['title'] for g in storage.goals if g['code'] in teacher['goals']]
-    #
-    # time_table = OrderedDict()
-    # for code, name in storage.weekdays.items():
-    #     hour_lst = [('0' + hour if len(hour) < 5 else hour, int(hour.split(':')[0]))
-    #                 for hour, free in teacher['free'].get(code, dict()).items() if free]
-    #     hour_lst.sort(key=lambda item: item[1])
-    #
-    #     time_table[(code, name)] = OrderedDict(hour_lst)
-    #
-    # return render_template('profile.html',
-    #                        teacher=teacher,
-    #                        goals=goals,
-    #                        time_table=time_table)
-    pass
+    teacher = db.session.query(Teacher).get_or_404(id)
+
+    week = get_current_week()
+    time_points = dict()
+    for row in db.session.query(TimeTableRow):
+        time_points[row.time] = (row.id, row.slug)
+
+    time_table = OrderedDict()
+    has_changed = False
+    for number, time_table_date in enumerate(week):
+        time_list = []
+        time_table_column = db.session.query(TimeTableColumn).filter(
+            (TimeTableColumn.teacher_id == id) &
+            (TimeTableColumn.date == time_table_date)
+        ).first()
+        if time_table_column is None:
+            time_table_column = TimeTableColumn(
+                teacher_id=id,
+                date=time_table_date
+            )
+            db.session.add(time_table_column)
+
+            for time, (row_id, slug) in time_points.items():
+                time_table_cell = TimeTableCell(
+                    row_id=row_id,
+                    column=time_table_column
+                )
+                db.session.add(time_table_cell)
+
+                time_list.append((time, slug))
+
+            has_changed = True
+
+        else:
+            for cell in time_table_column.cells.filter(TimeTableCell.is_free):
+                time, slug = next(
+                    ((t, s) for t, (row_id, s) in time_points.items()
+                     if row_id == cell.row_id),
+                    (None, None)
+                )
+
+                if time is not None and slug is not None:
+                    time_list.append((time, slug))
+
+        time_list.sort(key=lambda item: item[0])
+        time_table[(number, time_table_date)] = time_list
+
+    if has_changed:
+        db.session.commit()
+
+    return render_template(
+        'profile.html',
+        teacher=teacher,
+        time_table=time_table
+    )
 
 
-@main.route('/booking/<int:id>/<code>/<int:hour>/')
-def render_booking(id, code, hour):
-    # storage = Storage()
-    # teacher = next((t for t in storage.teachers if t['id'] == id), None)
-    # if teacher is None:
-    #     abort(404)
-    #
-    # if code not in storage.weekdays:
-    #     abort(404)
-    #
-    # time = f'{hour}:00'
-    # if time not in teacher['free'].get(code, dict()) or \
-    #         not teacher['free'][code].get(time, False):
-    #     return redirect(url_for('main.render_profile', id=id))
-    #
-    # form = BookingForm()
-    # return render_template('booking.html',
-    #                        teacher=teacher,
-    #                        weekday=(code, storage.weekdays[code]),
-    #                        time=time,
-    #                        form=form)
-    pass
+@main.route('/booking/<int:id>/<code>/<slug>/')
+def render_booking(id, code, slug):
+    teacher = db.session.query(Teacher).get_or_404(id)
+
+    weekday = next(
+        (idx for idx, (c, _) in enumerate(weekdays) if c == code),
+        None
+    )
+    if weekday is None:
+        abort(404)
+
+    time_table_row = db.session.query(TimeTableRow).filter(
+        TimeTableRow.slug == slug
+    ).first()
+    if time_table_row is None:
+        abort(404)
+
+    form = BookingForm()
+    return render_template(
+        'booking.html',
+        teacher=teacher,
+        weekday=weekday,
+        date=get_current_week()[weekday],
+        time_table_row=time_table_row,
+        form=form
+    )
 
 
 @main.route('/booking_done/', methods=('POST', ))
 def render_booking_done():
-    # storage = Storage()
-    # form = BookingForm()
-    #
-    # id = int(form.client_teacher.data)
-    # code = form.client_weekday.data
-    # time = form.client_time.data
-    #
-    # if form.validate_on_submit():
-    #     teacher = next((t for t in storage.teachers if t['id'] == id), None)
-    #     if teacher is None:
-    #         abort(404)
-    #
-    #     weekday = storage.weekdays.get(code)
-    #     if weekday is None:
-    #         abort(404)
-    #
-    #     if time not in teacher['free'].get(code, dict()) or \
-    #             not teacher['free'][code].get(time, False):
-    #         return redirect(url_for('main.render_profile', id=id))
-    #
-    #     name = form.client_name.data.strip()
-    #     phone = form.client_phone.data.strip()
-    #
-    #     teacher['free'][code][time] = False
-    #     storage.update()
-    #
-    #     return render_template('booking_done.html',
-    #                            teacher=teacher,
-    #                            weekday=weekday,
-    #                            time=time,
-    #                            name=name,
-    #                            phone=phone)
-    #
-    # else:
-    #     for field_errors in form.errors.values():
-    #         for error in field_errors:
-    #             flash(error, 'error')
-    #
-    #     hour = int(time.split(':')[0])
-    #     return redirect(url_for('main.render_booking', id=id, code=code, hour=hour))
-    pass
+    form = BookingForm()
+
+    id = int(form.client_teacher.data)
+    code = form.client_weekday.data
+    slug = form.client_time.data
+
+    if form.validate_on_submit():
+        teacher = db.session.query(Teacher).get_or_404(id)
+
+        weekday = next(
+            (idx for idx, (c, _) in enumerate(weekdays)
+             if c == form.client_weekday.data),
+            None
+        )
+        if weekday is None:
+            abort(404)
+
+        time_table_column = db.session.query(TimeTableColumn).filter(
+            (TimeTableColumn.teacher == teacher) &
+            (TimeTableColumn.date == get_current_week()[weekday])
+        ).first()
+        if time_table_column is None:
+            redirect(url_for('main.render_profile', id=id))
+
+        time_table_row = db.session.query(TimeTableRow).filter(
+            TimeTableRow.slug == slug
+        ).first()
+        if time_table_row is None:
+            abort(404)
+
+        name = form.client_name.data.strip()
+        phone = form.client_phone.data.strip()
+
+        time_table_cell = db.session.query(TimeTableCell).filter(
+            (TimeTableCell.row == time_table_row) &
+            (TimeTableCell.column == time_table_column) &
+            TimeTableCell.is_free
+        ).first()
+        if time_table_cell is None:
+            redirect(url_for('main.render_profile', id=id))
+        else:
+            time_table_cell.is_free = False
+            time_table_cell.name = name
+            time_table_cell.phone = phone
+
+            db.session.commit()
+
+        return render_template(
+            'booking_done.html',
+            weekday=weekday,
+            date=time_table_column.date,
+            time=time_table_row.time,
+            name=name,
+            phone=phone
+        )
+
+    else:
+        for field_errors in form.errors.values():
+            for error in field_errors:
+                flash(error, 'error')
+
+        return redirect(url_for(
+            'main.render_booking',
+            id=id,
+            code=code,
+            slug=slug
+        ))
 
 
 @main.route('/request/')
