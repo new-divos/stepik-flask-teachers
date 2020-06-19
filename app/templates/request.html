@@ -31,8 +31,8 @@
                             {% endfor %}
                         </div>
                         <div class="col">
-                            <p>{{ form.client_opportunity.label }}</p>
-                            {% for subfield in form.client_opportunity %}
+                            <p>{{ form.client_possibility.label }}</p>
+                            {% for subfield in form.client_possibility %}
                                 <div class="form-check">
                                     {{ subfield(class_="form-check-input", checked=(loop.index == 1)) }}
                                     {{ subfield.label(class_="form-check-label") }}

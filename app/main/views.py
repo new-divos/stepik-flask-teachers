@@ -15,13 +15,14 @@ from . import main
 from .forms import BookingForm, RequestForm
 from .. import db
 from ..models import (
+    ClientRequest,
     Goal,
     Teacher,
     TimeTableCell,
     TimeTableColumn,
     TimeTableRow,
 )
-from data import get_current_week, weekdays
+from data import get_current_week, weekdays, Possibility
 
 
 @main.route('/')
@@ -201,45 +202,57 @@ def render_booking_done():
 
 @main.route('/request/')
 def render_request():
-    # storage = Storage()
-    # form = RequestForm(storage)
-    #
-    # return render_template('request.html', form=form)
-    pass
+    form = RequestForm(db.session.query(Goal).all())
+    return render_template('request.html', form=form)
 
 
 @main.route('/request_done/', methods=('POST', ))
 def render_request_done():
-    # storage = Storage()
-    # form = RequestForm(storage)
-    #
-    # if form.validate_on_submit():
-    #     code = form.client_goal.data
-    #     goal = next((g['title'] for g in storage.goals if g['code'] == code), None)
-    #     if goal is None:
-    #         abort(404)
-    #
-    #     code = form.client_opportunity.data
-    #     opportunity = next((o[1] for o in storage.opportunities if o[0] == code), None)
-    #     if opportunity is None:
-    #         abort(404)
-    #
-    #     name = form.client_name.data.strip()
-    #     phone = form.client_phone.data.strip()
-    #
-    #     return render_template('request_done.html',
-    #                            goal=goal,
-    #                            opportunity=opportunity,
-    #                            name=name,
-    #                            phone=phone)
-    #
-    # else:
-    #     for field_errors in form.errors.values():
-    #         for error in field_errors:
-    #             flash(error, 'error')
-    #
-    #     return redirect(url_for('main.render_request'))
-    pass
+    goals = list(db.session.query(Goal).all())
+    form = RequestForm(goals)
+
+    if form.validate_on_submit():
+        goal = next(
+            (g for g in goals if g.code == form.client_goal.data),
+            None
+        )
+        if goal is None:
+            abort(404)
+
+        possibility = next(
+            (v for v in Possibility if v.name == form.client_possibility.data),
+            None
+        )
+        if possibility is None:
+            abort(404)
+
+        name = form.client_name.data
+        phone = form.client_phone.data
+
+        client_request = ClientRequest(
+            goal=goal,
+            possibility=possibility,
+            name=name,
+            phone=phone
+        )
+
+        db.session.add(client_request)
+        db.session.commit()
+
+        return render_template(
+            'request_done.html',
+            goal=goal,
+            possibility=possibility,
+            name=name,
+            phone=phone
+        )
+
+    else:
+        for field_errors in form.errors.values():
+            for error in field_errors:
+                flash(error, 'error')
+
+        return redirect(url_for('main.render_request'))
 
 
 @main.route('/static/<path:filename>')

@@ -9,6 +9,7 @@ from mimesis import Person
 
 from app import create_app, db
 from app.models import (
+    ClientRequest,
     Goal,
     Teacher,
     TimeTableCell,
@@ -16,6 +17,7 @@ from app.models import (
     TimeTableRow,
 )
 from config import config
+from data import Possibility
 
 
 current_config = config.get(os.getenv('FLASK_ENV'))
@@ -34,11 +36,13 @@ def make_shell_context():
     return dict(
         app=app,
         db=db,
+        ClientRequest=ClientRequest,
         Goal=Goal,
         Teacher=Teacher,
         TimeTableCell=TimeTableCell,
         TimeTableColumn=TimeTableColumn,
         TimeTableRow=TimeTableRow,
+        Possibility=Possibility,
     )
 
 

@@ -1,4 +1,5 @@
 from . import db
+from data import Possibility
 
 
 teachers_goals_association = db.Table(
@@ -56,6 +57,12 @@ class Goal(db.Model):
         'Teacher',
         secondary=teachers_goals_association,
         back_populates='goals'
+    )
+    client_requests = db.relationship(
+        'ClientRequest',
+        back_populates='goal',
+        cascade='all,delete',
+        lazy='dynamic'
     )
 
 
@@ -131,4 +138,25 @@ class TimeTableCell(db.Model):
         'TimeTableColumn',
         uselist=False,
         back_populates='cells'
+    )
+
+
+class ClientRequest(db.Model):
+    __tablename__ = 'client_requests'
+
+    id = db.Column('id', db.Integer,  primary_key=True)
+    goal_id = db.Column(
+        'goal_id',
+        db.Integer,
+        db.ForeignKey('goals.id')
+    )
+    possibility = db.Column('possibility', db.Enum(Possibility))
+    name = db.Column('name', db.String(70), nullable=False)
+    phone = db.Column('phone', db.String(20), nullable=False)
+    processed = db.Column('processed', db.Boolean, default=False)
+
+    goal = db.relationship(
+        'Goal',
+        uselist=False,
+        back_populates='client_requests'
     )
