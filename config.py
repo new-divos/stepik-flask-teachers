@@ -9,7 +9,7 @@ class Config:
     APP_DATA_VENDOR = os.getenv('APP_DATA_VENDOR', 'sqlite')
     APP_DATABASE_FILE = Path(os.getenv('APP_DATABASE_FILE',
                                        str(Path(__file__).parent / 'data.db')))
-    APP_DATABASE_HOST = os.getenv('APP_DATABASE_HOST', 'localhost')
+    APP_DATABASE_HOST = os.getenv('APP_DATABASE_HOST', '127.0.0.1')
     APP_DATABASE_PORT = int(os.getenv('APP_DATABASE_PORT', '5432'))
     APP_DATABASE_NAME = os.getenv('APP_DATABASE_NAME', 'stepik_flask_teachers')
     APP_DATABASE_USER = os.getenv('APP_DATABASE_USER', '')
@@ -40,18 +40,17 @@ class Config:
 
                 url_parts.append(app.config['APP_DATABASE_HOST'])
                 url_parts.append(':')
-                url_parts.append(app.config['APP_DATABASE_PORT'])
+                url_parts.append(str(app.config['APP_DATABASE_PORT']))
                 url_parts.append('/')
                 url_parts.append(app.config['APP_DATABASE_NAME'])
 
-                app.config['SQLALCHEMY_DATABASE_URI'] = ''.join(url_parts)
+                database_url = ''.join(url_parts)
+                os.environ['DATABASE_URL'] = database_url
 
             else:
                 raise RuntimeError(f"Unknown data vendor {data_vendor}")
 
-        else:
-            app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
