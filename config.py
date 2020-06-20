@@ -11,7 +11,7 @@ class Config:
                                        str(Path(__file__).parent / 'data.db')))
     APP_DATABASE_HOST = os.getenv('APP_DATABASE_HOST', '127.0.0.1')
     APP_DATABASE_PORT = int(os.getenv('APP_DATABASE_PORT', '5432'))
-    APP_DATABASE_NAME = os.getenv('APP_DATABASE_NAME', 'stepik_flask_teachers')
+    APP_DATABASE_NAME = os.getenv('APP_DATABASE_NAME', 'tinysteps')
     APP_DATABASE_USER = os.getenv('APP_DATABASE_USER', '')
     APP_DATABASE_PASSWORD = os.getenv('APP_DATABASE_PASSWORD', '')
 

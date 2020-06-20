@@ -1,27 +1,62 @@
 version: '3.7'
 
 services:
+  db:
+    image: new-divos/stepik-flask-teachers/db
+    restart: always
+
+    build:
+      context: ./docker/db
+      dockerfile: Dockerfile
+
+    environment:
+      - POSTGRES_DB=tinysteps
+      - POSTGRES_USER=tinysteps
+      - POSTGRES_PASSWORD=tinysteps
+
+    volumes:
+      - stepik_flask_teachers_data:/var/lib/postgresql/data:Z
+
+    ports:
+      - "5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tinysteps"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   web:
-    image: new-divos/stepik-flask-tutors/web
+    image: new-divos/stepik-flask-teachers/web
+    restart: always
 
     build:
       context: .
       dockerfile: docker/web/Dockerfile
 
     command: gunicorn -b 0.0.0.0:5000 manage:app --access-logfile -
-    volumes:
-      - stepik_flask_tutors_data:/var/web/data
 
     environment:
       - FLASK_APP=manage:app
       - FLASK_ENV=production
-      - APP_STORAGE_LOCATION=local
-      - APP_STORAGE_DIR=/var/web/data
+      - APP_DATA_VENDOR=postgresql
+      - APP_DATABASE_HOST=db
+      - APP_DATABASE_PORT=5432
+      - APP_DATABASE_NAME=tinysteps
+      - APP_DATABASE_USER=tinysteps
+      - APP_DATABASE_PASSWORD=tinysteps
     env_file:
       - ./.env.prod
 
+    links:
+      - db
+
+    depends_on:
+      - db
+
   nginx:
-    image: new-divos/stepik-flask-tutors/nginx
+    image: new-divos/stepik-flask-teachers/nginx
+    restart: always
 
     build:
       context: ./docker/nginx
@@ -33,5 +68,7 @@ services:
     depends_on:
       - web
 
+
 volumes:
-  stepik_flask_tutors_data:
+  stepik_flask_teachers_data:
+    external: true

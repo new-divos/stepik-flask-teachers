@@ -9,7 +9,6 @@ ENV LANG C.UTF-8
 ENV APP_USER flaskuser
 ENV APP_GROUP ${APP_USER}
 ENV APP_ROOT /home/${APP_USER}/web
-ENV DATA_ROOT /var/web/data
 
 # update container and install netcat
 RUN apt-get update && apt-get install -y netcat
@@ -18,10 +17,6 @@ RUN apt-get update && apt-get install -y netcat
 RUN groupadd -g 999 ${APP_GROUP} && \
     useradd -r --create-home -u 999 -g ${APP_GROUP} ${APP_USER}
 
-# create data directory
-RUN mkdir -p ${DATA_ROOT}
-RUN chown -R ${APP_USER}:${APP_GROUP} ${DATA_ROOT}
-
 # set work directory
 RUN mkdir ${APP_ROOT}
 WORKDIR ${APP_ROOT}
@@ -29,9 +24,12 @@ WORKDIR ${APP_ROOT}
 # copy project
 RUN mkdir ${APP_ROOT}/app
 COPY --chown=${APP_USER} ./app ${APP_ROOT}/app
+RUN mkdir ${APP_ROOT}/data
+COPY --chown=${APP_USER} ./data ${APP_ROOT}/data
+RUN mkdir ${APP_ROOT}/migrations
+COPY --chown=${APP_USER} ./migrations ${APP_ROOT}/migrations
 COPY --chown=${APP_USER} manage.py ${APP_ROOT}
 COPY --chown=${APP_USER} config.py ${APP_ROOT}
-COPY --chown=${APP_USER} data.py ${APP_ROOT}
 COPY --chown=${APP_USER} requirements.txt ${APP_ROOT}
 
 # install dependencies
