@@ -28,7 +28,11 @@ from data import get_current_week, weekdays, Possibility
 @main.route('/')
 def index():
     goals = db.session.query(Goal).order_by(Goal.title)
-    teachers = db.session.query(Teacher).order_by(func.random()).limit(6)
+    unordered = db.session.query(Teacher).order_by(func.random()).limit(6)
+
+    pairs = [(t, t.rating) for t in unordered]
+    pairs.sort(key=lambda item: item[1], reverse=True)
+    teachers, _ = zip(*pairs)
 
     return render_template('index.html', goals=goals, teachers=teachers)
 
@@ -39,7 +43,11 @@ def render_goal(code: str):
     if goal is None:
         abort(404)
 
-    return render_template('goal.html', goal=goal, teachers=goal.teachers)
+    pairs = [(t, t.rating) for t in goal.teachers]
+    pairs.sort(key=lambda item: item[1], reverse=True)
+    teachers, _ = zip(*pairs)
+
+    return render_template('goal.html', goal=goal, teachers=teachers)
 
 
 @main.route('/profiles/<int:id>/')
